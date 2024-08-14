@@ -8,9 +8,12 @@ import android.content.Intent
 import android.os.Build
 import android.os.IBinder
 import androidx.core.app.NotificationCompat
+import com.cambe.socket_sdk.R
 import com.cambe.socket_sdk.SocketHandler
+import com.cambe.socket_sdk.SocketPresenter
+import org.json.JSONObject
 
-class SocketService : Service() {
+class SocketService : Service(),SocketPresenter {
 
     override fun onBind(intent: Intent?): IBinder? {
         return null
@@ -18,7 +21,8 @@ class SocketService : Service() {
 
     override fun onCreate() {
         super.onCreate()
-        // Inisialisasi SocketHandler dan mulai koneksi
+        // Inisialisasi SocketHandler
+        SocketHandler.setSocketPresenter(this)
         SocketHandler.establishConnection()
     }
 
@@ -41,14 +45,28 @@ class SocketService : Service() {
         val notification: Notification = NotificationCompat.Builder(this, "SocketServiceChannel")
             .setContentTitle("Socket Service")
             .setContentText("Running in the background")
-            .setSmallIcon(androidx.core.R.drawable.ic_call_answer) // Ganti dengan icon yang sesuai
+            .setSmallIcon(R.drawable.ic_notifications) // Ganti dengan ikon yang sesuai
             .build()
 
         startForeground(1, notification)
+    }
+
+    private fun showNotification(title: String, content: String) {
+        val notification: Notification = NotificationCompat.Builder(this, "SocketServiceChannel")
+            .setContentTitle(title)
+            .setContentText(content)
+            .setSmallIcon(R.drawable.ic_notifications) // Ganti dengan ikon yang sesuai
+            .setPriority(NotificationCompat.PRIORITY_HIGH)
+            .build()
+
+        val notificationManager = getSystemService(NotificationManager::class.java)
+        notificationManager.notify(2, notification) // Unique ID for this notification
     }
 
     override fun onDestroy() {
         super.onDestroy()
         SocketHandler.closeConnection()
     }
+
+
 }
